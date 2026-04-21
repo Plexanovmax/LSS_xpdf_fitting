@@ -90,7 +90,9 @@ def save_fit_results(recipe,
     ax.set_ylabel("G(r)")
     ax.set_title("PDF Fit")
     ax.legend()
+    fig.tight_layout()
     fig.savefig(result_folder_path + f"plot.png")
+    plt.close()
 
     # recipe.contribution_name.generator_name.stru
     for con_name, con in recipe._contributions.items():

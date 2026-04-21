@@ -38,7 +38,7 @@ def single_phase_fit(data_path, config=CONFIG, plot=True, save_results=True, ite
     print("Starting single phase fit...")
     RP_cif = r"C:\Users\plexa\OneDrive\Bayreuth\LSS5-LSS20\diffPy\CIFs/SrLa2Sc2O7_Fmmm.cif"
     LSS_cif = r"C:\Users\plexa\OneDrive\Bayreuth\LSS5-LSS20\diffPy\CIFs/LaSr10ScO3_vesta.cif"
-    recipe = make_recipe(LSS_cif, data_path, config=config,space_group='P21') # Call the function to create the fit recipe
+    recipe = make_recipe([LSS_cif], data_path, config=config,space_group=['P21']) # Call the function to create the fit recipe
 
 
     r = recipe.PDFfit.profile.x
@@ -72,10 +72,11 @@ def single_phase_fit(data_path, config=CONFIG, plot=True, save_results=True, ite
         plt.ylabel("G(r)")
         plt.title("LSS10 PDF Fit")
         plt.legend()
+        plt.tight_layout()
         plt.show()
 
 data_folder = r"C:/Users/plexa/OneDrive/Bayreuth/LSS5-LSS20/data/"
 data_path = data_folder + "LSS10_dry_ext.gr"
 def run(path = data_path):
     print("Running single phase fit...")
-    single_phase_fit(path, iterations = 100)
+    single_phase_fit(path, iterations = 1)
