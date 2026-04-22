@@ -63,7 +63,7 @@ def rewrite_spacegroup(cif_path, sg_name):
 
 
 def save_fit_results(recipe,
-                     result_folder_path=r"C:/Users/plexa/OneDrive/Bayreuth/LSS5-LSS20/diffPy/LSS20/fit_results/"):
+                     result_folder_path=r"C:/Users/plexa/OneDrive/Bayreuth/LSS5-LSS20/diffPy/LSS20/fit_results/", two_phase = False):
     """Save the fit results to a file"""
 
     r = recipe.PDFfit.profile.x
@@ -86,6 +86,24 @@ def save_fit_results(recipe,
     ax.plot(r, gcalc, label="Fitted PDF", color="red")
     ax.plot(r, diff, label="Difference")
 
+    # if 2 phase
+    if two_phase:
+
+        phase0_scale = recipe.s0.value
+        phase1_scale = recipe.s1.value
+        norm = phase0_scale + phase1_scale
+
+        phase0_signal = (phase0_scale/norm)*recipe.PDFfit.PDF_Pnma.profile.ycalc
+        phase0_signal += min(diff) - np.abs(max(phase0_signal))
+
+
+        phase1_signal = (phase1_scale/norm)*recipe.PDFfit.PDF_P21.profile.ycalc
+        phase1_signal += min(phase0_signal) - np.abs(max(phase1_signal))
+
+        #phase1_signal += min(phase0_signal) - np.abs(max(phase1_signal))
+        ax.plot(r, phase0_signal, label="phase 1", color="orange")
+        ax.plot(r, phase1_signal, label="phase 2", color="green")
+
     ax.set_xlabel("r (Angstrom)")
     ax.set_ylabel("G(r)")
     ax.set_title("PDF Fit")
@@ -105,8 +123,8 @@ def save_fit_results(recipe,
                 rewrite_spacegroup(cif_path, recipe.space_group[gen_name])
 
 
-def create_ranges(start, stop, step, multiplyer = 2):
-    length = multiplyer*step
+def create_ranges(start, stop, step, multiplier = 2):
+    length = multiplier*step
     ranges = []
     n = start
     m = start + length

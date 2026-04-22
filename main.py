@@ -9,7 +9,7 @@ from setups import two_sim_fit as tsf
 
 
 if __name__ == "__main__":
-    #tsf.run()
+    # tsf.run()
     sf.run()
     # setup.run()
     # path1 = r'C:\Users\plexa\OneDrive\Bayreuth\LSS5-LSS20\diffPy\multiple_datasets\fit_results\boxcar_fits\LSS10'

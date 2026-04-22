@@ -6,6 +6,8 @@ from diffpy.srfit.pdf import PDFParser, PDFGenerator
 from diffpy.structure.parsers import get_parser
 from diffpy.srfit.structure import constrainAsSpaceGroup
 from pathlib import Path
+from diffpy.srfit.pdf.characteristicfunctions import sphericalCF
+from diffpy.srfit.fitbase.parameter import Parameter
 
 
 class Metadata:
@@ -139,12 +141,20 @@ def make_recipe(cif_paths, dat_path, config, space_group = None):
     contribution.setProfile(profile, xname="r")
 
     # 6. Set the equation used to combine the simulated PDF with the experimental PDF
+
     string_equation = ''
+    #general multiphase eq
     for i, stru in enumerate(structures):
         if len(string_equation)> 0:
             string_equation += '+'
         string_equation += f's{i}*PDF_{SGs[i]}'
     contribution.setEquation(string_equation) # scaling factor for the simulated PDF
+
+    # equation for 2nd phase limited with a sphere
+    contribution.registerFunction(sphericalCF, name="f")
+    #contribution.setEquation(f"s0*PDF_{SGs[0]} + s1*PDF_{SGs[1]}*f")
+
+
 
     # 7. Create a Fit Recipe which turns our physics model into a mathematical recipe
     recipe = MyFitRecipe()
@@ -193,9 +203,30 @@ def make_recipe(cif_paths, dat_path, config, space_group = None):
                     recipe.addVar(par, name=f"{sg}_{par.name}", fixed=(not config["REFINE_COORD"]), tag="xyz")
 
         # Add ADP parameters from the space group parameters
-        for par in spacegroupparams.adppars:
-            recipe.addVar(par, name=f"{sg}_{par.name}", fixed=(not config["REFINE_ADP"]), tag="adp").boundRange(lb=0.0)
+        # for par in spacegroupparams.adppars:
+        #     recipe.addVar(par, name=f"{sg}_{par.name}", fixed=(not config["REFINE_ADP"]), tag="adp").boundRange(lb=0.0)
+        # Get unique element types (excluding Sr which is constrained to La)
+        element_types = set()
+        for atom in atoms:
+                element_types.add(atom.element.title())
 
+        # Create a Biso parameter for each element type
+        element_biso_params = {}
+        for element in element_types:
+            # Create a parameter for this element type
+            param_name = f"{sg}_{element}_Biso"
+            # Use the BISO_I value from config as initial value
+            initial_value = config['BISO_I']
+            # Create a new parameter
+            biso_param = Parameter(param_name, value=initial_value)
+            recipe.addVar(biso_param, fixed=(not config["REFINE_ADP"]), tag="adp").boundRange(lb=0.0)
+            element_biso_params[element] = biso_param
+
+        # Constrain each atom's Biso to the corresponding element type parameter
+        for atom in atoms:
+            element = atom.element.title()
+            if element in element_biso_params:
+                recipe.constrain(atom.Biso, element_biso_params[element])
         # Constrain Sr atoms to corresponding La atoms for coordinates and ADPs
         for atom in atoms:
             if atom.element.title() == "Sr":
@@ -210,15 +241,20 @@ def make_recipe(cif_paths, dat_path, config, space_group = None):
                     recipe.constrain(atom.x, atoms[la_idx].x)
                     recipe.constrain(atom.y, atoms[la_idx].y)
                     recipe.constrain(atom.z, atoms[la_idx].z)
-                    recipe.constrain(atom.Biso, atoms[la_idx].Biso)
+
 
         recipe.addVar(
             PDFs[i].delta2,
-            fixed=True,
+            fixed=False,
             name=f"{sg}_delta2",
             value=config["DELTA2_I"],
             tag="d2",
-        )
+        ).boundRange(lb=0.0)
+    # add size
+    try:
+        recipe.addVar(contribution.psize, config['PSIZE_I'], tag="psize", fixed=True).boundRange(lb=0.0)
+    except KeyError:
+        print('no psize')
 
 
     return recipe

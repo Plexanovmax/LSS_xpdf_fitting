@@ -14,7 +14,7 @@ CONFIG = {
 
     # Data and Instrument
     "PDF_RMIN": 1.8,
-    "PDF_RMAX": 10,
+    "PDF_RMAX": 30,
     "PDF_RSTEP": 0.01,
     "QMAX": 17.13,
     "QMIN": 0.1,
@@ -31,7 +31,9 @@ CONFIG = {
 
     # Structure (multi-phase)
     "SCALE": [0.2, 0.05],
-    "DELTA2": [2, 2]
+    "DELTA2": [2, 2],
+    "PSIZE_I": 0.01
+
 }
 
 
@@ -45,7 +47,7 @@ def single_phase_fit(data_path, config=CONFIG, plot=True, save_results=True, ite
     r = recipe.PDFfit.profile.x
     g = recipe.PDFfit.profile.y
     recipe.fithooks[0].verbose = 0
-    result = least_squares(recipe.residual, recipe.values, x_scale="jac", verbose=0, max_nfev=iterations)
+    result = least_squares(recipe.residual, recipe.values,bounds=recipe.bounds2, x_scale="jac", verbose=0, max_nfev=iterations)
     print(f"Number of function evaluations: {result.nfev}")
     gcalc = recipe.PDFfit.profile.ycalc
     res = FitResults(recipe)
@@ -58,7 +60,7 @@ def single_phase_fit(data_path, config=CONFIG, plot=True, save_results=True, ite
     if save_results:
         name = 'LSS10'
         result_folder_path = f"C:/Users/plexa/OneDrive/Bayreuth/LSS5-LSS20/diffPy/{name}/fit_results/"
-        save_fit_results(recipe, result_folder_path)
+        save_fit_results(recipe, result_folder_path, two_phase=True)
         res.saveResults(result_folder_path + f"{name}_fit_results.res")
 
     if plot:
@@ -81,4 +83,4 @@ data_path = data_folder + "LSS10_dry_ext.gr"
 
 def run(path=data_path):
     print("Running single phase fit...")
-    single_phase_fit(path, iterations=1)
+    single_phase_fit(path, iterations=100)
