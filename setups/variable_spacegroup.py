@@ -74,7 +74,7 @@ def run():
         tags = ["lat", "scale", "all"]
         for tag in tags:
             recipe.free(tag)
-            result = least_squares(recipe.residual, recipe.values, x_scale="jac", verbose=0, max_nfev=100)
+            result = least_squares(recipe.residual, recipe.values, x_scale="jac", bounds=recipe.bounds2,verbose=0, max_nfev=100)
             print(f"Refined {tag}: Number of function evaluations: {result.nfev}")
 
         gcalc = recipe.PDFfit.profile.ycalc

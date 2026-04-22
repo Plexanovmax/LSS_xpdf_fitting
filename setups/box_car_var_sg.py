@@ -116,7 +116,7 @@ def run():
                 for tag in tags:
                     recipe.free(tag)
                     recipe.fix('d2')
-                    result = least_squares(recipe.residual, recipe.values, x_scale="jac", verbose=0, max_nfev=100)
+                    result = least_squares(recipe.residual, recipe.values, bounds=recipe.bounds2,x_scale="jac", verbose=0, max_nfev=100)
                     print(f"Refined {tag}: Number of function evaluations: {result.nfev}")
 
 

@@ -14,7 +14,7 @@ CONFIG = {
     
     # Data and Instrument
     "PDF_RMIN": 1.8,
-    "PDF_RMAX": 10,
+    "PDF_RMAX": 30,
     "PDF_RSTEP": 0.01,
     "QMAX": 17.13,
     "QMIN": 0.1,
